@@ -129,23 +129,24 @@ for i in range(1,nI-1):
 		F[i,j,2] =  rho * U[i,j+1] # north convective
 		F[i,j,3] =  rho * U[i,j-1] # south convective
 
-
 #Peclet Number calculation
 
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
 for i in range(1,nI-1):
 	for j in range(1,nJ-1):
-		coeffsT[i,j,0] = 0
-		coeffsT[i,j,1] = 0
-		coeffsT[i,j,2] = 0
-		coeffsT[i,j,3] = 0
-		coeffsT[i,j,4] = 0
+		coeffsT[i,j,0] = np.max([-F[i,j,0], D[i,j,0] - F[i,j,0]/2, 0]) #East
+		coeffsT[i,j,1] = np.max([ F[i,j,1], D[i,j,1] + F[i,j,1]/2, 0]) #West
+		coeffsT[i,j,2] = np.max([-F[i,j,2], D[i,j,2] - F[i,j,2]/2, 0]) #North
+		coeffsT[i,j,3] = np.max([ F[i,j,3], D[i,j,3] + F[i,j,3]/2, 0]) #South
+		S_p = -F[i,j,0] + F[i,j,1] - F[i,j,2] + F[i,j,3] #Correct for the hybrid scheme
+		coeffsT[i,j,4] = np.sum(coeffsT[i,j,0:3]) - S_p
 
 for iter in range(nIterations): 
     # Impose boundary conditions
     
     # Solve for T using Gauss-Seidel or TDMA (both results need to be 
     # presented)
+	
 
     # Copy temperatures to boundaries
     
