@@ -85,7 +85,7 @@ k           =     1
 rho         =     1   # density
 nIterations =     1  # number of iterations
 Cp          = 500
-plotVelocityVectors = False
+plotVelocityVectors = True
 resTolerance = 0.001
 
 # Read data for velocity fields and geometrical quantities
@@ -119,10 +119,10 @@ gamma = k/Cp
 ## Diffusive and convective coefficient calculations
 for i in range(1,nI-1):
 	for j in range(1,nJ-1):
-		D[i,j,0] =  gamma / dxe_N[i,j] # east diffusive
-		D[i,j,1] =  gamma / dxw_N[i,j] # west diffusive
-		D[i,j,2] =  gamma / dyn_N[i,j] # north diffusive
-		D[i,j,3] =  gamma / dys_N[i,j] # south diffusive
+		D[i,j,0] =  gamma / dxe_N[i] # east diffusive
+		D[i,j,1] =  gamma / dxw_N[i] # west diffusive
+		D[i,j,2] =  gamma / dyn_N[j] # north diffusive
+		D[i,j,3] =  gamma / dys_N[j] # south diffusive
 				
 		F[i,j,0] =  rho * U[i+1,j] # east convective
 		F[i,j,1] =  rho * U[i-1,j] # weast convective
@@ -177,4 +177,4 @@ plt.colorbar()
 plt.title('Temperature')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
-plt.show()
+plt.show(block = True)
