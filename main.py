@@ -85,6 +85,7 @@ k           =     1
 rho         =     1   # density
 nIterations =     1  # number of iterations
 Cp          = 500
+method = 'Gauss'
 plotVelocityVectors = True
 resTolerance = 0.001
 
@@ -123,13 +124,12 @@ for i in range(1,nI-1):
 		D[i,j,1] =  gamma / dxw_N[i] # west diffusive
 		D[i,j,2] =  gamma / dyn_N[j] # north diffusive
 		D[i,j,3] =  gamma / dys_N[j] # south diffusive
-				
-		F[i,j,0] =  rho * U[i+1,j] # east convective
-		F[i,j,1] =  rho * U[i-1,j] # weast convective
-		F[i,j,2] =  rho * U[i,j+1] # north convective
-		F[i,j,3] =  rho * U[i,j-1] # south convective
-
-#Peclet Number calculation
+	# if(U[i,j] and V[i,j] > 0):
+			
+		F[i,j,0] =  rho * U[i+1,j] + U[i,j] /2 # east convective
+		F[i,j,1] =  rho * U[i,j] + U[i-1,j] /2 # weast convective
+		F[i,j,2] =  rho * V[i,j+1] + V[i,j] /2 # north convective
+		F[i,j,3] =  rho * V[i,j] + V[i,j-1] /2 # south convective
 
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
 for i in range(1,nI-1):
@@ -144,22 +144,24 @@ for i in range(1,nI-1):
 for iter in range(nIterations): 
     # Impose boundary conditions
     
-    # Solve for T using Gauss-Seidel or TDMA (both results need to be 
-    # presented)
+    # Solve for T using Gauss-Seidel or TDMA (both results need to be presented)
+
+
+
 	
 
     # Copy temperatures to boundaries
     
     # Compute residuals (taking into account normalization)
-    residuals.append() # fill with your residual value for the 
+		residuals.append() # fill with your residual value for the 
                        # current iteration
     
-    print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
+		print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
     
     # Check convergence
     
-    if resTolerance>residuals[-1]:
-        break
+		if resTolerance>residuals[-1]:	
+			break
 
 
 # Plotting (these are some examples, more plots might be needed)
