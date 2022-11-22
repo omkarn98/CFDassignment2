@@ -105,6 +105,52 @@ if plotVelocityVectors:
 	plt.ylabel('y [m]')
 	plt.show()
 
+#Find boundaries to the problem
+#Number for each point on boundary, 0 for wall, 1 for inlet, 2 for outlet.
+B1 = np.zeros((nI, 1))
+B2 = np.zeros((nJ, 1))
+B3 = np.zeros((nI, 1))
+B4 = np.zeros((nJ, 1))
+
+velWall = 1e-4 #Tolerance for wall speed 
+for i in range(1, nI-1):
+	j = 0
+	velNorm = -V[i,j] #Scalar multiplied with boundary normals
+	if(velNorm < velWall and velNorm > -velNorm):
+		B1[i] = 0
+	elif(velNorm < -velWall):
+		B1[i] = 1
+	elif(velNorm > velWall):
+		B1[i] = 2
+
+	j = nJ-1
+	velNorm = V[i,j] #Scalar multiplied with boundary normals
+	if(velNorm < velWall and velNorm > -velNorm):
+		B3[i] = 0
+	elif(velNorm < -velWall):
+		B3[i] = 1
+	elif(velNorm > velWall):
+		B3[i] = 2
+
+for j in range(1,nJ-1):
+	i = nI-1
+	velNorm = U[i,j] #Scalar multiplied with boundary normals
+	if(velNorm < velWall and velNorm > -velNorm):
+		B2[j] = 0
+	elif(velNorm < -velWall):
+		B2[j] = 1
+	elif(velNorm > velWall):
+		B2[j] = 2
+
+	i = 0
+	velNorm = -U[i,j] #Scalar multiplied with boundary normals
+	if(velNorm < velWall and velNorm > -velNorm):
+		B4[j] = 0
+	elif(velNorm < -velWall):
+		B4[j] = 1
+	elif(velNorm > velWall):
+		B4[j] = 2
+
 # Allocate needed vairables
 T = np.zeros((nI, nJ))        # temperature matrix
 D = np.zeros((nI, nJ,4))      # diffusive coefficients e, w, n and s
@@ -177,6 +223,9 @@ for iter in range(nIterations):
 
 # Plotting (these are some examples, more plots might be needed)
 xv, yv = np.meshgrid(xCoords_N, yCoords_N)
+
+plt.figure()
+plt.plot()
 
 plt.figure()
 plt.quiver(xv, yv, U.T, V.T)
