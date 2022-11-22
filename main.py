@@ -145,6 +145,17 @@ for iter in range(nIterations):
     # Impose boundary conditions
     
     # Solve for T using Gauss-Seidel or TDMA (both results need to be presented)
+	if (method == 'Gauss'):
+		RHS = coeffsT[i,j,0] * T[i+1,j] + coeffsT[i,j,1] * T[i-1,j] + coeffsT[i,j,2] * T[i,j+1] + coeffsT[i,j,3] * T[i,j-1]
+		T[i,j] = RHS/ coeffsT[i,j,4]
+		
+		#elif(method == 'TDMA'):
+
+
+
+
+
+
 
 
 
@@ -153,15 +164,15 @@ for iter in range(nIterations):
     # Copy temperatures to boundaries
     
     # Compute residuals (taking into account normalization)
-		residuals.append() # fill with your residual value for the 
+	residuals.append() # fill with your residual value for the 
                        # current iteration
     
-		print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
+	print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
     
     # Check convergence
     
-		if resTolerance>residuals[-1]:	
-			break
+	if resTolerance>residuals[-1]:	
+		break
 
 
 # Plotting (these are some examples, more plots might be needed)
