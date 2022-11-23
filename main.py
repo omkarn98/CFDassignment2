@@ -85,7 +85,7 @@ k           =     1
 rho         =     1   # density
 nIterations =     1  # number of iterations
 Cp          = 500
-method = 'Gauss'
+method = 'TDMA'
 plotVelocityVectors = True
 resTolerance = 0.001
 
@@ -193,24 +193,43 @@ for iter in range(nIterations):
     # Solve for T using Gauss-Seidel or TDMA (both results need to be presented)
 	if (method == 'Gauss'):
 		RHS = coeffsT[i,j,0] * T[i+1,j] + coeffsT[i,j,1] * T[i-1,j] + coeffsT[i,j,2] * T[i,j+1] + coeffsT[i,j,3] * T[i,j-1]
-		T[i,j] = RHS/ coeffsT[i,j,4]
+		T[i,j] = RHS/coeffsT[i,j,4]
 		
-		#elif(method == 'TDMA'):
+	elif(method == 'TDMA'):
+		#Pre-TDMA coefficients horizontal
+		a = np.zeros(nI,nJ)
+		b = np.zeros(nI,nJ)
+		c = np.zeros(nI,nJ)
+		d = np.zeros(nI,nJ)
+		P = np.zeros(nI,nJ)
+		Q = np.zeros(nI,nJ)
 
-
-
-
-
-
-
-
-
-	
+		if(np.mod(iter,2)==0):
+			#Solve horizontally
+			for j in range(1,nJ-1):
+				for i in range(1,nI-1):
+					a[i,j] = coeffsT[i,j,4] #a_p
+					b[i,j] = coeffsT[i,j,0] #a_e
+					c[i,j] = coeffsT[i,j,1] #a_w
+					d[i,j] = coeffsT[i,j,2] * T[i,j+1] + coeffsT[i,j,3] * T[i,j-1] 
+				#Construct P and Q terms
+				i = 1
+				P[i,j] = b[i,j] / a[i,j]
+				Q[i,j] = (d[i,j] + c[i,j] * T[i-1,j])/a[i,j] 
+				for i in range(2,nI-2):
+					P[i,j] = b[i,j] / (a[i,j] - c[i,j] * P[i-1,j])
+					Q[i,j] = (d[i,j] + c[i,j] * Q[i-1,j]) / (d[i,j] - c[i,j] * Q[i-1,j])
+				i=nI-2
+				P[i,j] = 0
+				Q[i,j] = (d[i,j] + c[i,j] * Q[i-1,j] + b[i,j] * T[i+1,j]) / (a[i,j] - c[i,j] * P[i-1,j])
+		else:
+			a = 1
+			#Solve vertically
 
     # Copy temperatures to boundaries
     
     # Compute residuals (taking into account normalization)
-	residuals.append() # fill with your residual value for the 
+	#residuals.append() # fill with your residual value for the 
                        # current iteration
     
 	print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
