@@ -197,12 +197,12 @@ for iter in range(nIterations):
 		
 	elif(method == 'TDMA'):
 		#Pre-TDMA coefficients horizontal
-		a = np.zeros(nI,nJ)
-		b = np.zeros(nI,nJ)
-		c = np.zeros(nI,nJ)
-		d = np.zeros(nI,nJ)
-		P = np.zeros(nI,nJ)
-		Q = np.zeros(nI,nJ)
+		a = np.zeros([nI,nJ])
+		b = np.zeros([nI,nJ])
+		c = np.zeros([nI,nJ])
+		d = np.zeros([nI,nJ])
+		P = np.zeros([nI,nJ])
+		Q = np.zeros([nI,nJ])
 
 		if(np.mod(iter,2)==0):
 			#Solve horizontally
@@ -222,9 +222,30 @@ for iter in range(nIterations):
 				i=nI-2
 				P[i,j] = 0
 				Q[i,j] = (d[i,j] + c[i,j] * Q[i-1,j] + b[i,j] * T[i+1,j]) / (a[i,j] - c[i,j] * P[i-1,j])
+
+				for i in range(1, nI-1):
+					T[nI - i - 1,j] = P[i,j] * T[nI - i,j] + Q[i,j]
 		else:
-			a = 1
-			#Solve vertically
+			#Solve horizontally
+			for i in range(1,nI-1):
+				for j in range(1,nJ-1):
+					a[i,j] = coeffsT[i,j,4] #a_p
+					b[i,j] = coeffsT[i,j,2] #a_n
+					c[i,j] = coeffsT[i,j,3] #a_s
+					d[i,j] = coeffsT[i,j,0] * T[i+1,j] + coeffsT[i,j,1] * T[i-1,j] 
+				#Construct P and Q terms
+				j = 1
+				P[i,j] = b[i,j] / a[i,j]
+				Q[i,j] = (d[i,j] + c[i,j] * T[i,j-1])/a[i,j] 
+				for i in range(2,nI-2):
+					P[i,j] = b[i,j] / (a[i,j] - c[i,j] * P[i,j-1])
+					Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1]) / (d[i,j] - c[i,j] * Q[i,j-1])
+				i=nI-2
+				P[i,j] = 0
+				Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1] + b[i,j] * T[i,j+1]) / (a[i,j] - c[i,j] * P[i,j-1])
+
+				for j in range(1, nJ-1):
+					T[i,nJ - j - 1] = P[i,j] * T[i,nJ - j] + Q[i,j]
 
     # Copy temperatures to boundaries
     
