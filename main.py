@@ -111,7 +111,10 @@ B1 = np.zeros((nI, 1))
 B2 = np.zeros((nJ, 1))
 B3 = np.zeros((nI, 1))
 B4 = np.zeros((nJ, 1))
-
+x = np.zeros(nI)
+for i in range(2, nI-2):
+	x = (dxe_N[i] - dxe_N[i+1]) /(dxe_N[i+1])
+	print(x)
 velWall = 1e-4 #Tolerance for wall speed 
 for i in range(1, nI-1):
 	j = 0
@@ -163,21 +166,29 @@ residuals = []
 
 gamma = k/Cp
 
-## Diffusive and convective coefficient calculations
+# Diffusive and convective coefficient calculations
 for i in range(1,nI-1):
 	for j in range(1,nJ-1):
-		D[i,j,0] =  gamma / dxe_N[i] # east diffusive
-		D[i,j,1] =  gamma / dxw_N[i] # west diffusive
-		D[i,j,2] =  gamma / dyn_N[j] # north diffusive
-		D[i,j,3] =  gamma / dys_N[j] # south diffusive
+		D[i,j,0] =  gamma * dy_CV[i] / dxe_N[i] # east diffusive
+		D[i,j,1] =  gamma * dy_CV[i] / dxw_N[i] # west diffusive
+		D[i,j,2] =  gamma * dx_CV[j] / dyn_N[j] # north diffusive
+		D[i,j,3] =  gamma * dx_CV[j] / dys_N[j] # south diffusive
 	# if(U[i,j] and V[i,j] > 0):
 			
-		F[i,j,0] =  rho * U[i+1,j] + U[i,j] /2 # east convective
-		F[i,j,1] =  rho * U[i,j] + U[i-1,j] /2 # weast convective
-		F[i,j,2] =  rho * V[i,j+1] + V[i,j] /2 # north convective
-		F[i,j,3] =  rho * V[i,j] + V[i,j-1] /2 # south convective
+		Fx_e = 0.5 * dx_CV / dxe_N
+		Fx_w = 0.5 * dx_CV / dxw_N
+		Fx_n = 0.5 * dy_CV / dyn_N
+		Fx_s = 0.5 * dy_CV / dys_N
+		
+		
+		F[i,j,0] =  Fx_e * (rho * U[i+1,j]) + (1-Fx_e) * rho * U[i,j]  # east convective
+		F[i,j,1] =  Fx_w * (rho * U[i,j]) + (1-Fx_w) * rho * U[i-1,j]  # weast convective
+		F[i,j,2] =  Fx_n * (rho * V[i,j+1]) + (1-Fx_n) * rho * V[i,j]  # north convective
+		F[i,j,3] =  Fx_s * (rho * V[i,j]) + (1-Fx_s) * rho * V[i,j-1]  # south convective
 
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
+
+
 for i in range(1,nI-1):
 	for j in range(1,nJ-1):
 		coeffsT[i,j,0] = np.max([-F[i,j,0], D[i,j,0] - F[i,j,0]/2, 0]) #East
@@ -187,25 +198,30 @@ for i in range(1,nI-1):
 		S_p = -F[i,j,0] + F[i,j,1] - F[i,j,2] + F[i,j,3] #Correct for the hybrid scheme
 		coeffsT[i,j,4] = np.sum(coeffsT[i,j,0:3]) - S_p
 
+for j in range(1,nJ-1):
+	i = 1
+	if(B4[j] == 1):
+		T[i,j] = 293
+	i = nI-2
+	if(B2[j]==2):
+		coeffsT[i,j,0] = 0
+	
+
+
 for iter in range(nIterations): 
     # Impose boundary conditions
     
     # Solve for T using Gauss-Seidel or TDMA (both results need to be presented)
+	
 	if (method == 'Gauss'):
-		RHS = coeffsT[i,j,0] * T[i+1,j] + coeffsT[i,j,1] * T[i-1,j] + coeffsT[i,j,2] * T[i,j+1] + coeffsT[i,j,3] * T[i,j-1]
+		for i in range(1, nI-1):
+			for j in range(1, nJ-1):
+				RHS = coeffsT[i,j,0] * T[i+1,j] + coeffsT[i,j,1] * T[i-1,j] \
+					+ coeffsT[i,j,2] * T[i,j+1] + coeffsT[i,j,3] * T[i,j-1]
 		T[i,j] = RHS/ coeffsT[i,j,4]
 		
-		#elif(method == 'TDMA'):
+	# elif(method == 'TDMA'):
 
-
-
-
-
-
-
-
-
-	
 
     # Copy temperatures to boundaries
     
