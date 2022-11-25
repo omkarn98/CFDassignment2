@@ -86,7 +86,7 @@ rho         =     1   # density
 nIterations =     1  # number of iterations
 Cp          = 500
 method = 'TDMA'
-plotVelocityVectors = True
+plotVelocityVectors = False
 resTolerance = 0.001
 
 # Read data for velocity fields and geometrical quantities
@@ -175,10 +175,10 @@ for i in range(1,nI-1):
 		D[i,j,3] =  gamma * dx_CV[j] / dys_N[j] # south diffusive
 	# if(U[i,j] and V[i,j] > 0):
 			
-		Fx_e = 0.5 * dx_CV / dxe_N
-		Fx_w = 0.5 * dx_CV / dxw_N
-		Fx_n = 0.5 * dy_CV / dyn_N
-		Fx_s = 0.5 * dy_CV / dys_N
+		Fx_e = 0.5 * dx_CV[i] / dxe_N[i]
+		Fx_w = 0.5 * dx_CV[i] / dxw_N[i]
+		Fx_n = 0.5 * dy_CV[j] / dyn_N[j]
+		Fx_s = 0.5 * dy_CV[j] / dys_N[j]
 		
 		
 		F[i,j,0] =  Fx_e * (rho * U[i+1,j]) + (1-Fx_e) * rho * U[i,j]  # east convective
@@ -243,13 +243,13 @@ for iter in range(nIterations):
 				Q[i,j] = (d[i,j] + c[i,j] * T[i-1,j])/a[i,j] 
 				for i in range(2,nI-2):
 					P[i,j] = b[i,j] / (a[i,j] - c[i,j] * P[i-1,j])
-					Q[i,j] = (d[i,j] + c[i,j] * Q[i-1,j]) / (d[i,j] - c[i,j] * Q[i-1,j])
+					Q[i,j] = (d[i,j] + c[i,j] * Q[i-1,j]) / (a[i,j] - c[i,j] * P[i-1,j])
 				i=nI-2
 				P[i,j] = 0
 				Q[i,j] = (d[i,j] + c[i,j] * Q[i-1,j] + b[i,j] * T[i+1,j]) / (a[i,j] - c[i,j] * P[i-1,j])
 
 				for i in range(1, nI-1):
-					T[nI - i - 1,j] = P[i,j] * T[nI - i,j] + Q[i,j]
+					T[nI - i - 1,j] = P[nI - i - 1,j] * T[nI - i,j] + Q[nI - i - 1,j]
 		else:
 			#Solve horizontally
 			for i in range(1,nI-1):
@@ -278,12 +278,12 @@ for iter in range(nIterations):
 	#residuals.append() # fill with your residual value for the 
                        # current iteration
     
-	print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
+	#print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
     
     # Check convergence
     
-	if resTolerance>residuals[-1]:	
-		break
+	#if resTolerance>residuals[-1]:	
+	#	break
 
 
 # Plotting (these are some examples, more plots might be needed)
@@ -297,7 +297,6 @@ plt.quiver(xv, yv, U.T, V.T)
 plt.title('Velocity vectors')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
-plt.show()
 
 plt.figure()
 plt.contourf(xv, yv, T.T)
