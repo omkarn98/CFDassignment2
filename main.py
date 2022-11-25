@@ -83,9 +83,9 @@ grid_type   = 'coarse' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
 k           =     1   
 rho         =     1   # density
-nIterations =     2  # number of iterations
+nIterations =     200  # number of iterations
 Cp          = 500
-method = 'TDMA'
+method = 'Gauss'
 plotVelocityVectors = False
 resTolerance = 0.001
 
@@ -201,21 +201,25 @@ for j in range(1, nJ-1):
 		F[i,j,1] = 0
 
 	i = nI-2
-	coeffsT[i,j,0] = 0
-	F[i,j,0] = 0
+	if(B2[j] == 2):
+		coeffsT[i,j,0] = 0
+		F[i,j,0] = 0
+	else:
+		T[i,j] = 283
+
 
 for i in range(1,nI-1):
 	j = 1
 	coeffsT[i,j,3] = 0
-	F[i,j,3] = 0
+	# F[i,j,3] = 0
 
 	j = nJ-2
 	coeffsT[i,j,2] = 0
-	F[i,j,2] = 0
+	# F[i,j,2] = 0
 	
 for i in range(1, nI-1):
 	for j in range(1, nJ-1):
-		S_p = -F[i,j,0] + F[i,j,1] - F[i,j,2] + F[i,j,3] #Correct for the hybrid scheme
+		S_p = 0 #-F[i,j,0] + F[i,j,1] - F[i,j,2] + F[i,j,3] #Correct for the hybrid scheme
 		coeffsT[i,j,4] = np.sum(coeffsT[i,j,0:3]) - S_p
 
 for iter in range(nIterations): 
