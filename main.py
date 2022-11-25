@@ -207,7 +207,6 @@ for j in range(1,nJ-1):
 		coeffsT[i,j,0] = 0
 	
 
-
 for iter in range(nIterations): 
     # Impose boundary conditions
     
@@ -273,8 +272,19 @@ for iter in range(nIterations):
 					T[i,nJ - j - 1] = P[i,j] * T[i,nJ - j] + Q[i,j]
 
     # Copy temperatures to boundaries
+	
     
     # Compute residuals (taking into account normalization)
+	F_res_xi = 0
+	F_res_xo = 0
+	for j in range(1, nJ-1):
+		i = 1
+		F_res_xi = F_res_xi + abs(rho * V[i,j] * dy_CV[i,j]) * T[i,j]
+		i = nI-2
+		F_res_xo = F_res_xo + abs(rho * V[i,j] * dy_CV[i,j]) * T[i,j]
+	F_res_total = abs(F_res_xi - F_res_xo)
+
+
 	#residuals.append() # fill with your residual value for the 
                        # current iteration
     
