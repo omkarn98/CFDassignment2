@@ -83,10 +83,10 @@ grid_type   = 'coarse' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
 k           =     1   
 rho         =     1   # density
-nIterations =     1  # number of iterations
+nIterations =     200  # number of iterations
 Cp          = 500
-method = 'TDMA'
-plotVelocityVectors = True
+method = 'Gauss'
+plotVelocityVectors = False
 resTolerance = 0.001
 
 # Read data for velocity fields and geometrical quantities
@@ -111,10 +111,6 @@ B1 = np.zeros((nI, 1))
 B2 = np.zeros((nJ, 1))
 B3 = np.zeros((nI, 1))
 B4 = np.zeros((nJ, 1))
-x = np.zeros(nI)
-for i in range(2, nI-2):
-	x = (dxe_N[i] - dxe_N[i+1]) /(dxe_N[i+1])
-	print(x)
 velWall = 1e-4 #Tolerance for wall speed 
 for i in range(1, nI-1):
 	j = 0
@@ -175,10 +171,10 @@ for i in range(1,nI-1):
 		D[i,j,3] =  gamma * dx_CV[j] / dys_N[j] # south diffusive
 	# if(U[i,j] and V[i,j] > 0):
 			
-		Fx_e = 0.5 * dx_CV / dxe_N
-		Fx_w = 0.5 * dx_CV / dxw_N
-		Fx_n = 0.5 * dy_CV / dyn_N
-		Fx_s = 0.5 * dy_CV / dys_N
+		Fx_e = 0.5 * dx_CV[i] / dxe_N[i]
+		Fx_w = 0.5 * dx_CV[i] / dxw_N[i]
+		Fx_n = 0.5 * dy_CV[j] / dyn_N[j]
+		Fx_s = 0.5 * dy_CV[j] / dys_N[j]
 		
 		
 		F[i,j,0] =  Fx_e * (rho * U[i+1,j]) + (1-Fx_e) * rho * U[i,j]  # east convective
@@ -187,25 +183,44 @@ for i in range(1,nI-1):
 		F[i,j,3] =  Fx_s * (rho * V[i,j]) + (1-Fx_s) * rho * V[i,j-1]  # south convective
 
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
-
-
 for i in range(1,nI-1):
 	for j in range(1,nJ-1):
 		coeffsT[i,j,0] = np.max([-F[i,j,0], D[i,j,0] - F[i,j,0]/2, 0]) #East
 		coeffsT[i,j,1] = np.max([ F[i,j,1], D[i,j,1] + F[i,j,1]/2, 0]) #West
 		coeffsT[i,j,2] = np.max([-F[i,j,2], D[i,j,2] - F[i,j,2]/2, 0]) #North
 		coeffsT[i,j,3] = np.max([ F[i,j,3], D[i,j,3] + F[i,j,3]/2, 0]) #South
-		S_p = -F[i,j,0] + F[i,j,1] - F[i,j,2] + F[i,j,3] #Correct for the hybrid scheme
-		coeffsT[i,j,4] = np.sum(coeffsT[i,j,0:3]) - S_p
 
-for j in range(1,nJ-1):
+#Boundary conditions
+
+for j in range(1, nJ-1):
 	i = 1
 	if(B4[j] == 1):
 		T[i,j] = 293
+	else:
+		coeffsT[i,j,1] = 0
+		F[i,j,1] = 0
+
 	i = nI-2
-	if(B2[j]==2):
+	if(B2[j] == 2):
 		coeffsT[i,j,0] = 0
+		F[i,j,0] = 0
+	else:
+		T[i,j] = 283
+
+
+for i in range(1,nI-1):
+	j = 1
+	coeffsT[i,j,3] = 0
+	# F[i,j,3] = 0
+
+	j = nJ-2
+	coeffsT[i,j,2] = 0
+	# F[i,j,2] = 0
 	
+for i in range(1, nI-1):
+	for j in range(1, nJ-1):
+		S_p = 0 #-F[i,j,0] + F[i,j,1] - F[i,j,2] + F[i,j,3] #Correct for the hybrid scheme
+		coeffsT[i,j,4] = np.sum(coeffsT[i,j,0:3]) - S_p
 
 for iter in range(nIterations): 
     # Impose boundary conditions
@@ -242,58 +257,69 @@ for iter in range(nIterations):
 				Q[i,j] = (d[i,j] + c[i,j] * T[i-1,j])/a[i,j] 
 				for i in range(2,nI-2):
 					P[i,j] = b[i,j] / (a[i,j] - c[i,j] * P[i-1,j])
-					Q[i,j] = (d[i,j] + c[i,j] * Q[i-1,j]) / (d[i,j] - c[i,j] * Q[i-1,j])
+					Q[i,j] = (d[i,j] + c[i,j] * Q[i-1,j]) / (a[i,j] - c[i,j] * P[i-1,j])
 				i=nI-2
 				P[i,j] = 0
 				Q[i,j] = (d[i,j] + c[i,j] * Q[i-1,j] + b[i,j] * T[i+1,j]) / (a[i,j] - c[i,j] * P[i-1,j])
 
-				for i in range(1, nI-1):
-					T[nI - i - 1,j] = P[i,j] * T[nI - i,j] + Q[i,j]
+				for i in reversed(range(1, nI-1)):
+					T[i,j] = P[i,j] * T[i+1,j] + Q[i,j]
 		else:
+			tfrlhsdajf=1
 			#Solve horizontally
-			for i in range(1,nI-1):
-				for j in range(1,nJ-1):
-					a[i,j] = coeffsT[i,j,4] #a_p
-					b[i,j] = coeffsT[i,j,2] #a_n
-					c[i,j] = coeffsT[i,j,3] #a_s
-					d[i,j] = coeffsT[i,j,0] * T[i+1,j] + coeffsT[i,j,1] * T[i-1,j] 
-				#Construct P and Q terms
-				j = 1
-				P[i,j] = b[i,j] / a[i,j]
-				Q[i,j] = (d[i,j] + c[i,j] * T[i,j-1])/a[i,j] 
-				for i in range(2,nI-2):
-					P[i,j] = b[i,j] / (a[i,j] - c[i,j] * P[i,j-1])
-					Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1]) / (d[i,j] - c[i,j] * Q[i,j-1])
-				i=nI-2
-				P[i,j] = 0
-				Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1] + b[i,j] * T[i,j+1]) / (a[i,j] - c[i,j] * P[i,j-1])
-
-				for j in range(1, nJ-1):
-					T[i,nJ - j - 1] = P[i,j] * T[i,nJ - j] + Q[i,j]
+			#for i in range(1,nI-1):
+			#	for j in range(1,nJ-1):
+			#		a[i,j] = coeffsT[i,j,4] #a_p
+			#		b[i,j] = coeffsT[i,j,2] #a_n
+			#		c[i,j] = coeffsT[i,j,3] #a_s
+			#		d[i,j] = coeffsT[i,j,0] * T[i+1,j] + coeffsT[i,j,1] * T[i-1,j] 
+			#	#Construct P and Q terms
+			#	j = 1
+			#	P[i,j] = b[i,j] / a[i,j]
+			#	Q[i,j] = (d[i,j] + c[i,j] * T[i,j-1])/a[i,j] 
+			#	for i in range(2,nI-2):
+			#		P[i,j] = b[i,j] / (a[i,j] - c[i,j] * P[i,j-1])
+			#		Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1]) / (d[i,j] - c[i,j] * Q[i,j-1])
+			#	i=nI-2
+			#	P[i,j] = 0
+			#	Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1] + b[i,j] * T[i,j+1]) / (a[i,j] - c[i,j] * P[i,j-1])
+#
+			#	for j in range(1, nJ-1):
+			#		T[i,nJ - j - 1] = P[i,nJ - j - 1] * T[i,nJ - j] + Q[i,nJ - j - 1]
 
     # Copy temperatures to boundaries
-	
-    
-    # Compute residuals (taking into account normalization)
-	F_res_xi = 0
-	F_res_xo = 0
+	for i in range(1, nI-1):
+		j = 1
+		T[i,j-1] = T[i,j]
+
+		j = nJ-1
+		T[i,j] = T[i,j-1]
+
 	for j in range(1, nJ-1):
 		i = 1
-		F_res_xi = F_res_xi + abs(rho * V[i,j] * dy_CV[i,j]) * T[i,j]
-		i = nI-2
-		F_res_xo = F_res_xo + abs(rho * V[i,j] * dy_CV[i,j]) * T[i,j]
-	F_res_total = abs(F_res_xi - F_res_xo)
+		if(B4[j] != 1):
+			T[i-1,j] = T[i,j]
+
+    # # Compute residuals (taking into account normalization)
+	# F_res_xi = 0
+	# F_res_xo = 0
+	# for j in range(1, nJ-1):
+	# 	i = 1
+	# 	F_res_xi = F_res_xi + abs(rho * V[i,j] * dy_CV[i,j]) * T[i,j]
+	# 	i = nI-2
+	# 	F_res_xo = F_res_xo + abs(rho * V[i,j] * dy_CV[i,j]) * T[i,j]
+	# F_res_total = abs(F_res_xi - F_res_xo)
 
 
 	#residuals.append() # fill with your residual value for the 
                        # current iteration
     
-	print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
+	#print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
     
     # Check convergence
     
-	if resTolerance>residuals[-1]:	
-		break
+	#if resTolerance>residuals[-1]:	
+	#	break
 
 
 # Plotting (these are some examples, more plots might be needed)
@@ -307,7 +333,7 @@ plt.quiver(xv, yv, U.T, V.T)
 plt.title('Velocity vectors')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
-plt.show()
+
 
 plt.figure()
 plt.contourf(xv, yv, T.T)
