@@ -83,9 +83,9 @@ grid_type   = 'coarse' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
 k           =     1   
 rho         =     1   # density
-nIterations =     1  # number of iterations
+nIterations =     100  # number of iterations
 Cp          = 500
-method = 'Gauss'
+method = 'TDMA'
 plotVelocityVectors = False
 resTolerance = 0.001
 
@@ -195,27 +195,20 @@ for i in range(1,nI-1):
 for j in range(1, nJ-1):
 	i = 1
 	if(B4[j] == 1):
-		T[i,j] = 293
+		T[0,j] = 293
 	else:
 		coeffsT[i,j,1] = 0
-		F[i,j,1] = 0
 
 	i = nI-2
-	if(B2[j] == 2):
-		coeffsT[i,j,0] = 0
-		F[i,j,0] = 0
-	else:
-		T[i,j] = 283 #TODO This is supposed to be neumann
+	coeffsT[i,j,0] = 0
 
 
 for i in range(1,nI-1):
 	j = 1
 	coeffsT[i,j,3] = 0
-	# F[i,j,3] = 0
 
 	j = nJ-2
 	coeffsT[i,j,2] = 0
-	# F[i,j,2] = 0
 	
 for i in range(1, nI-1):
 	for j in range(1, nJ-1):
@@ -326,7 +319,7 @@ plt.ylabel('y [m]')
 
 
 plt.figure()
-plt.contourf(xv, yv, T.T)
+plt.pcolormesh(xv, yv, T.T) #contourf for smooth plot
 plt.colorbar()
 plt.title('Temperature')
 plt.xlabel('x [m]')
