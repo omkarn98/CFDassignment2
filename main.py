@@ -83,9 +83,9 @@ grid_type   = 'coarse' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
 k           =     1   
 rho         =     1   # density
-nIterations =     100  # number of iterations
+nIterations =     1000  # number of iterations
 Cp          = 500
-method = 'TDMA'
+method = 'Gauss'
 plotVelocityVectors = False
 resTolerance = 0.001
 
@@ -199,8 +199,12 @@ for j in range(1, nJ-1):
 	else:
 		coeffsT[i,j,1] = 0
 
+	#Dirichlet on outlet
 	i = nI-2
-	coeffsT[i,j,0] = 0
+	if(B2[j] == 2):
+		T[i+1,j] = 200
+	else:
+		coeffsT[i,j,0] = 0
 
 
 for i in range(1,nI-1):
