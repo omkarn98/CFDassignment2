@@ -83,7 +83,7 @@ grid_type   = 'coarse' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
 k           =     1   
 rho         =     1   # density
-nIterations =     200  # number of iterations
+nIterations =     1  # number of iterations
 Cp          = 500
 method = 'Gauss'
 plotVelocityVectors = False
@@ -205,7 +205,7 @@ for j in range(1, nJ-1):
 		coeffsT[i,j,0] = 0
 		F[i,j,0] = 0
 	else:
-		T[i,j] = 283
+		T[i,j] = 283 #TODO This is supposed to be neumann
 
 
 for i in range(1,nI-1):
@@ -219,8 +219,8 @@ for i in range(1,nI-1):
 	
 for i in range(1, nI-1):
 	for j in range(1, nJ-1):
-		S_p = 0 #-F[i,j,0] + F[i,j,1] - F[i,j,2] + F[i,j,3] #Correct for the hybrid scheme
-		coeffsT[i,j,4] = np.sum(coeffsT[i,j,0:3]) - S_p
+		S_p = 0 # -F[i,j,0] + F[i,j,1] - F[i,j,2] + F[i,j,3] 0 due to div(v) = 0
+		coeffsT[i,j,4] = np.sum(coeffsT[i,j,0:4]) - S_p
 
 for iter in range(nIterations): 
     # Impose boundary conditions
@@ -232,7 +232,7 @@ for iter in range(nIterations):
 			for j in range(1, nJ-1):
 				RHS = coeffsT[i,j,0] * T[i+1,j] + coeffsT[i,j,1] * T[i-1,j] \
 					+ coeffsT[i,j,2] * T[i,j+1] + coeffsT[i,j,3] * T[i,j-1]
-		T[i,j] = RHS/ coeffsT[i,j,4]
+				T[i,j] = RHS/ coeffsT[i,j,4]
 		
 	elif(method == 'TDMA'):
 		#Pre-TDMA coefficients horizontal
