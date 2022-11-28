@@ -297,6 +297,10 @@ for iter in range(nIterations):
 		if(B4[j] != 1):
 			T[i-1,j] = T[i,j]
 
+		i = nI-1
+		if(B2[j] != 0):
+			T[i,j] = T[i-1,j]
+
     # # Compute residuals (taking into account normalization)
 	F_res_xi = 0
 	F_res_xo = 0
