@@ -83,9 +83,9 @@ grid_type   = 'coarse' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
 k           =     1   
 rho         =     1   # density
-nIterations =     200  # number of iterations
+nIterations =     100  # number of iterations
 Cp          = 500
-method = 'Gauss'
+method = 'TDMA'
 plotVelocityVectors = False
 resTolerance = 0.001
 
@@ -198,7 +198,6 @@ for j in range(1, nJ-1):
 		T[0,j] = 293
 	else:
 		coeffsT[i,j,1] = 0
-		F[i,j,1] = 0
 
 	i = nI-2
 	if(B2[j] == 2):
@@ -211,16 +210,14 @@ for j in range(1, nJ-1):
 for i in range(1,nI-1):
 	j = 1
 	coeffsT[i,j,3] = 0
-	# F[i,j,3] = 0
 
 	j = nJ-2
 	coeffsT[i,j,2] = 0
-	# F[i,j,2] = 0
 	
 for i in range(1, nI-1):
 	for j in range(1, nJ-1):
-		S_p = 0 #-F[i,j,0] + F[i,j,1] - F[i,j,2] + F[i,j,3] #Correct for the hybrid scheme
-		coeffsT[i,j,4] = np.sum(coeffsT[i,j,0:3]) - S_p
+		S_p = 0 # -F[i,j,0] + F[i,j,1] - F[i,j,2] + F[i,j,3] 0 due to div(v) = 0
+		coeffsT[i,j,4] = np.sum(coeffsT[i,j,0:4]) - S_p
 
 for iter in range(nIterations): 
     # Impose boundary conditions
@@ -232,7 +229,7 @@ for iter in range(nIterations):
 			for j in range(1, nJ-1):
 				RHS = coeffsT[i,j,0] * T[i+1,j] + coeffsT[i,j,1] * T[i-1,j] \
 					+ coeffsT[i,j,2] * T[i,j+1] + coeffsT[i,j,3] * T[i,j-1]
-		T[i,j] = RHS/ coeffsT[i,j,4]
+				T[i,j] = RHS/ coeffsT[i,j,4]
 		
 	elif(method == 'TDMA'):
 		#Pre-TDMA coefficients horizontal
@@ -336,7 +333,7 @@ plt.ylabel('y [m]')
 
 
 plt.figure()
-plt.contourf(xv, yv, T.T)
+plt.pcolormesh(xv, yv, T.T) #contourf for smooth plot
 plt.colorbar()
 plt.title('Temperature')
 plt.xlabel('x [m]')
