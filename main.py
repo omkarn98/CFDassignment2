@@ -83,9 +83,9 @@ grid_type   = 'coarse' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
 k           =     1   
 rho         =     1   # density
-nIterations =     100  # number of iterations
+nIterations =     2000  # number of iterations
 Cp          = 500
-method = 'TDMA'
+method = 'Gauss'
 plotVelocityVectors = False
 resTolerance = 0.001
 
@@ -285,7 +285,7 @@ for iter in range(nIterations):
 			#		T[i,nJ - j - 1] = P[i,nJ - j - 1] * T[i,nJ - j] + Q[i,nJ - j - 1]
 
     # Copy temperatures to boundaries
-	for i in range(1, nI-1):
+	for i in range(0, nI):
 		j = 1
 		T[i,j-1] = T[i,j]
 
@@ -298,25 +298,37 @@ for iter in range(nIterations):
 			T[i-1,j] = T[i,j]
 
     # # Compute residuals (taking into account normalization)
-	# F_res_xi = 0
-	# F_res_xo = 0
-	# for j in range(1, nJ-1):
-	# 	i = 1
-	# 	F_res_xi = F_res_xi + abs(rho * V[i,j] * dy_CV[i,j]) * T[i,j]
-	# 	i = nI-2
-	# 	F_res_xo = F_res_xo + abs(rho * V[i,j] * dy_CV[i,j]) * T[i,j]
-	# F_res_total = abs(F_res_xi - F_res_xo)
+	F_res_xi = 0
+	F_res_xo = 0
+	for j in range(1, nJ-1):
+		i = 0
+		F_res_xi = F_res_xi + (abs(rho * V[i,j] * dy_CV[j]) * T[i,j]) + (abs(rho * U[i,j] * dy_CV[j]) * T[i,j]) 
+		i = nI-1
+		F_res_xo = F_res_xo + (abs(rho * V[i,j] * dy_CV[j]) * T[i,j]) + (abs(rho * U[i,j] * dy_CV[j]) * T[i,j]) 
+	
+	F_res_total = abs(F_res_xi - F_res_xo)
+
+	R = 0
+	r = 0
+	for i in range(1, nI-1):
+		for j in range(1, nJ-1):
+			R = R + abs(coeffsT[i,j,4] * T[i,j] - coeffsT[i,j,0] * T[i+1, j] \
+				- coeffsT[i,j,1] * T[i-1, j] - coeffsT[i,j,2] * T[i,j+1] \
+				- coeffsT[i,j,3] * T[i, j-1]) 
+
+	r = R / F_res_total	
 
 
-	#residuals.append() # fill with your residual value for the 
+
+	residuals.append(r) # fill with your residual value for the 
                        # current iteration
     
-	#print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
+	print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
     
     # Check convergence
     
-	#if resTolerance>residuals[-1]:	
-	#	break
+	if resTolerance>residuals[-1]:	
+		break
 
 
 # Plotting (these are some examples, more plots might be needed)
