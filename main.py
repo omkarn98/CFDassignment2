@@ -195,7 +195,7 @@ for i in range(1,nI-1):
 for j in range(1, nJ-1):
 	i = 1
 	if(B4[j] == 1):
-		T[i,j] = 293
+		T[0,j] = 293
 	else:
 		coeffsT[i,j,1] = 0
 		F[i,j,1] = 0
@@ -205,7 +205,7 @@ for j in range(1, nJ-1):
 		coeffsT[i,j,0] = 0
 		F[i,j,0] = 0
 	else:
-		T[i,j] = 283
+		T[nI-1,j] = 283
 
 
 for i in range(1,nI-1):
