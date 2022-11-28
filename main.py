@@ -83,9 +83,9 @@ grid_type   = 'coarse' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
 k           =     1   
 rho         =     1   # density
-nIterations =     2  # number of iterations
+nIterations =     1000  # number of iterations
 Cp          = 500
-method = 'TDMA'
+method = 'Gauss'
 plotVelocityVectors = False
 resTolerance = 0.001
 
@@ -275,7 +275,7 @@ for iter in range(nIterations):
 				Q[i,j] = (d[i,j] + c[i,j] * T[i,j-1])/a[i,j] 
 				for j in range(2,nJ-2):
 					P[i,j] = b[i,j] / (a[i,j] - c[i,j] * P[i,j-1])
-					Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1]) / (d[i,j] - c[i,j] * Q[i,j-1])
+					Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1]) / (a[i,j] - c[i,j] * P[i,j-1])
 				j=nJ-2
 				P[i,j] = 0
 				Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1] + b[i,j] * T[i,j+1]) / (a[i,j] - c[i,j] * P[i,j-1])
