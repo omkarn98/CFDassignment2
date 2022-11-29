@@ -195,7 +195,7 @@ for i in range(1,nI-1):
 for j in range(1, nJ-1):
 	i = 1
 	if(B4[j] == 1):
-		T[0,j] = 293 #TODO make dirichlet the SU way
+		T[0,j] = 293
 	else:
 		coeffsT[i,j,1] = 0
 
@@ -203,12 +203,14 @@ for j in range(1, nJ-1):
 	if(B2[j] == 2):
 		coeffsT[i,j,0] = 0
 	else:
-		T[nI-1,j] = 0
+		T[nI-1,j] = 283 #20 C
 
 
 for i in range(1,nI-1):
+
+	#Dirichlet on lower boundary
 	j = 1
-	coeffsT[i,j,3] = 0
+	T[i,j-1] = 273 #0 C
 
 	j = nJ-2
 	coeffsT[i,j,2] = 0
@@ -284,11 +286,14 @@ for iter in range(nIterations):
 
     # Copy temperatures to boundaries
 	for i in range(0, nI):
-		j = 1
-		T[i,j-1] = T[i,j]
+		#Changed to dirichlet
+		# j = 1
+		# T[i,j-1] = T[i,j]
 
 		j = nJ-1
 		T[i,j] = T[i,j-1]
+	T[nI-1, 0] = T[nI-1,1]
+	T[0, 0] = T[0,1]
 
 	for j in range(1, nJ-1):
 		i = 1
