@@ -178,9 +178,9 @@ for i in range(1,nI-1):
 		
 		
 		F[i,j,0] =  Fx_e * (rho * U[i+1,j]) + (1-Fx_e) * rho * U[i,j]  # east convective
-		F[i,j,1] =  Fx_w * (rho * U[i,j]) + (1-Fx_w) * rho * U[i-1,j]  # weast convective
+		F[i,j,1] =  Fx_w * (rho * U[i-1,j]) + (1-Fx_w) * rho * U[i,j]  # weast convective
 		F[i,j,2] =  Fx_n * (rho * V[i,j+1]) + (1-Fx_n) * rho * V[i,j]  # north convective
-		F[i,j,3] =  Fx_s * (rho * V[i,j]) + (1-Fx_s) * rho * V[i,j-1]  # south convective
+		F[i,j,3] =  Fx_s * (rho * V[i,j-1]) + (1-Fx_s) * rho * V[i,j]  # south convective
 
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
 for i in range(1,nI-1):
@@ -195,7 +195,7 @@ for i in range(1,nI-1):
 for j in range(1, nJ-1):
 	i = 1
 	if(B4[j] == 1):
-		T[0,j] = 293 #TODO make dirichlet the SU way
+		T[0,j] = 293
 	else:
 		coeffsT[i,j,1] = 0
 
@@ -203,7 +203,7 @@ for j in range(1, nJ-1):
 	if(B2[j] == 2):
 		coeffsT[i,j,0] = 0
 	else:
-		T[nI-1,j] = 0
+		T[nI-1,j] = 283
 
 
 for i in range(1,nI-1):
@@ -333,17 +333,24 @@ for iter in range(nIterations):
 		break
 
 
+# Compute heat fluxes
+q = np.zeros((nI, nJ, 2))
+for i in range(1,nI-1):
+    for j in range(1,nJ-1):
+        q[i,j,0] = -k[i,j]*(T[i+1,j]-T[i-1,j])/(dxe_N[i,j]+dxw_N[i,j])
+        q[i,j,1] = -k[i,j]*(T[i,j+1]-T[i,j-1])/(dyn_N[i,j]+dys_N[i,j])
+
 # Plotting (these are some examples, more plots might be needed)
 xv, yv = np.meshgrid(xCoords_N, yCoords_N)
 
 #plt.figure()
 #plt.plot()
 
-#plt.figure()
-#plt.quiver(xv, yv, U.T, V.T)
-#plt.title('Velocity vectors')
-#plt.xlabel('x [m]')
-#plt.ylabel('y [m]')
+plt.figure()
+plt.quiver(xv, yv, U.T, V.T)
+plt.title('Velocity vectors')
+plt.xlabel('x [m]')
+plt.ylabel('y [m]')
 
 plt.figure()
 plt.plot(residuals)
@@ -354,8 +361,9 @@ plt.ylabel('residuals [-]')
 plt.title('Residual')
 
 plt.figure()
-plt.pcolormesh(xv, yv, T.T) #contourf for smooth plot
+plt.contourf(xv, yv, T.T) #contourf for smooth plot
 plt.colorbar()
+plt.quiver(xv, yv, U.T, V.T)
 plt.title('Temperature')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
