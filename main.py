@@ -87,7 +87,7 @@ nIterations =     2000  # number of iterations
 Cp          = 500
 method = 'TDMA'
 plotVelocityVectors = False
-resTolerance = 0.01
+resTolerance = 0.0001
 
 # Read data for velocity fields and geometrical quantities
 
@@ -140,7 +140,6 @@ for j in range(1,nJ-1):
 		B2[j] = 1
 	elif(velNorm > velWall):
 		B2[j] = 2
-
 	i = 0
 	velNorm = -U[i,j] #Scalar multiplied with boundary normals
 	if(velNorm < velWall and velNorm > -velNorm):
@@ -150,6 +149,7 @@ for j in range(1,nJ-1):
 	elif(velNorm > velWall):
 		B4[j] = 2
 
+# print(B2)
 # Allocate needed vairables
 T = np.zeros((nI, nJ))        # temperature matrix
 D = np.zeros((nI, nJ,4))      # diffusive coefficients e, w, n and s
@@ -178,9 +178,9 @@ for i in range(1,nI-1):
 		
 		
 		F[i,j,0] =  Fx_e * (rho * U[i+1,j]) + (1-Fx_e) * rho * U[i,j]  # east convective
-		F[i,j,1] =  Fx_w * (rho * U[i,j]) + (1-Fx_w) * rho * U[i-1,j]  # weast convective
+		F[i,j,1] =  Fx_w * (rho * U[i-1,j]) + (1-Fx_w) * rho * U[i,j]  # weast convective
 		F[i,j,2] =  Fx_n * (rho * V[i,j+1]) + (1-Fx_n) * rho * V[i,j]  # north convective
-		F[i,j,3] =  Fx_s * (rho * V[i,j]) + (1-Fx_s) * rho * V[i,j-1]  # south convective
+		F[i,j,3] =  Fx_s * (rho * V[i,j-1]) + (1-Fx_s) * rho * V[i,j]  # south convective
 
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
 for i in range(1,nI-1):
@@ -203,7 +203,7 @@ for j in range(1, nJ-1):
 	if(B2[j] == 2):
 		coeffsT[i,j,0] = 0
 	else:
-		T[nI-1,j] = 0
+		T[nI-1,j] = 283
 
 
 for i in range(1,nI-1):
@@ -332,6 +332,26 @@ for iter in range(nIterations):
 	if resTolerance>residuals[-1]:	
 		break
 
+# Heat Flux calculation
+
+#heat flux at inlet and outlet 
+for j in range(1, nI-1):
+	i = 0
+	F_res_xi = ((rho * V[i,j] * dy_CV[j]) * T[i,j] + (rho * U[i,j] * dy_CV[j]) * T[i,j]) * Cp
+
+	i = nI-1
+	F_res_xo = ((rho * V[i,j] * dy_CV[j]) * T[i,j]) + ((rho * U[i,j] * dy_CV[j]) * T[i,j]) * Cp 
+
+
+F_global = F_res_xi + F_res_xo
+# q = np.zeros((nI, nJ, ))
+# for i in range(1, nI-1):
+# 	j = 0
+# 	q[i,j,1] = -k * (T[i,j+1] - T[i,j]) / dys_N[i]
+# 	j = nJ-1
+
+print(F_global)
+
 
 # Plotting (these are some examples, more plots might be needed)
 xv, yv = np.meshgrid(xCoords_N, yCoords_N)
@@ -345,10 +365,16 @@ xv, yv = np.meshgrid(xCoords_N, yCoords_N)
 #plt.xlabel('x [m]')
 #plt.ylabel('y [m]')
 
+plt.figure()
+plt.plot(xCoords_N, T[:,0])
+plt.xlabel('x [m]')
+plt.ylabel('T [K]')
+plt.title('Temperature')
 
 plt.figure()
-plt.pcolormesh(xv, yv, T.T) #contourf for smooth plot
+plt.contourf(xv, yv, T.T) #contourf for smooth plot
 plt.colorbar()
+plt.quiver(xv, yv, U.T, V.T)
 plt.title('Temperature')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
