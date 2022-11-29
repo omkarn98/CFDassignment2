@@ -345,6 +345,13 @@ xv, yv = np.meshgrid(xCoords_N, yCoords_N)
 #plt.xlabel('x [m]')
 #plt.ylabel('y [m]')
 
+plt.figure()
+plt.plot(residuals)
+plt.yscale('log')
+plt.title('Residual convergence')
+plt.xlabel('iterations')
+plt.ylabel('residuals [-]')
+plt.title('Residual')
 
 plt.figure()
 plt.pcolormesh(xv, yv, T.T) #contourf for smooth plot
