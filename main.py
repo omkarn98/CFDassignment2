@@ -195,7 +195,7 @@ for i in range(1,nI-1):
 for j in range(1, nJ-1):
 	i = 1
 	if(B4[j] == 1):
-		T[0,j] = 293 #TODO make dirichlet the SU way
+		T[0,j] = 293
 	else:
 		coeffsT[i,j,1] = 0
 
@@ -344,14 +344,21 @@ for j in range(1, nI-1):
 
 
 F_global = F_res_xi + F_res_xo
-# q = np.zeros((nI, nJ, ))
-# for i in range(1, nI-1):
-# 	j = 0
-# 	q[i,j,1] = -k * (T[i,j+1] - T[i,j]) / dys_N[i]
-# 	j = nJ-1
 
 print(F_global)
 
+# Compute heat fluxes
+q = np.zeros((nI, nJ, 2))
+for i in range(1,nI-1):
+	for j in range(1,nJ-1):
+		q[i,j,0] = -k*(T[i+1,j]-T[i-1,j])/(dxe_N[i]+dxw_N[i])
+		q[i,j,1] = -k*(T[i,j+1]-T[i,j-1])/(dyn_N[j]+dys_N[j])
+
+#Boundary 2 non-outlet part
+i = nI-1
+for j in range(1, nJ-1):
+	q[i,j,0] = -k * (T[i,j] - T[i-1,j])/dxw_N[i-1]
+	q[i,j,1] = -k*(T[i,j+1]-T[i,j-1])/(dyn_N[j]+dys_N[j])
 
 # Plotting (these are some examples, more plots might be needed)
 xv, yv = np.meshgrid(xCoords_N, yCoords_N)
@@ -359,12 +366,25 @@ xv, yv = np.meshgrid(xCoords_N, yCoords_N)
 #plt.figure()
 #plt.plot()
 
-#plt.figure()
-#plt.quiver(xv, yv, U.T, V.T)
-#plt.title('Velocity vectors')
-#plt.xlabel('x [m]')
-#plt.ylabel('y [m]')
+# plt.figure()
+# plt.quiver(xv, yv, U.T, V.T)
+# plt.title('Velocity vectors')
+# plt.xlabel('x [m]')
+# plt.ylabel('y [m]')
 
+plt.figure()
+plt.quiver(xv, yv, q[:,:,0].T, q[:,:,1].T)
+plt.title('Heat flux vectors')
+plt.xlabel('x [m]')
+plt.ylabel('y [m]')
+
+# plt.figure()
+# plt.plot(residuals)
+# plt.yscale('log')
+# plt.title('Residual convergence')
+# plt.xlabel('iterations')
+# plt.ylabel('residuals [-]')
+# plt.title('Residual')
 plt.figure()
 plt.plot(xCoords_N, T[:,0])
 plt.xlabel('x [m]')
