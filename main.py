@@ -79,15 +79,15 @@ def  ReadDataAndGeometry(caseID, grid_type):
 
 # Inputs
 
-grid_type   = 'coarse' # either 'coarse' or 'fine'
+grid_type   = 'fine' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
-k           =     1   
+k           =     1/100
 rho         =     1   # density
-nIterations =     1000  # number of iterations
+nIterations =     80000  # number of iterations
 Cp          = 500
-method = 'Gauss'
+method = 'TDMA'
 plotVelocityVectors = False
-resTolerance = 0.001
+resTolerance = 0.0001
 
 # Read data for velocity fields and geometrical quantities
 
@@ -140,7 +140,6 @@ for j in range(1,nJ-1):
 		B2[j] = 1
 	elif(velNorm > velWall):
 		B2[j] = 2
-
 	i = 0
 	velNorm = -U[i,j] #Scalar multiplied with boundary normals
 	if(velNorm < velWall and velNorm > -velNorm):
@@ -150,6 +149,7 @@ for j in range(1,nJ-1):
 	elif(velNorm > velWall):
 		B4[j] = 2
 
+# print(B2)
 # Allocate needed vairables
 T = np.zeros((nI, nJ))        # temperature matrix
 D = np.zeros((nI, nJ,4))      # diffusive coefficients e, w, n and s
@@ -178,9 +178,9 @@ for i in range(1,nI-1):
 		
 		
 		F[i,j,0] =  Fx_e * (rho * U[i+1,j]) + (1-Fx_e) * rho * U[i,j]  # east convective
-		F[i,j,1] =  Fx_w * (rho * U[i,j]) + (1-Fx_w) * rho * U[i-1,j]  # weast convective
+		F[i,j,1] =  Fx_w * (rho * U[i-1,j]) + (1-Fx_w) * rho * U[i,j]  # weast convective
 		F[i,j,2] =  Fx_n * (rho * V[i,j+1]) + (1-Fx_n) * rho * V[i,j]  # north convective
-		F[i,j,3] =  Fx_s * (rho * V[i,j]) + (1-Fx_s) * rho * V[i,j-1]  # south convective
+		F[i,j,3] =  Fx_s * (rho * V[i,j-1]) + (1-Fx_s) * rho * V[i,j]  # south convective
 
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
 for i in range(1,nI-1):
@@ -202,14 +202,15 @@ for j in range(1, nJ-1):
 	#Dirichlet on outlet
 	i = nI-2
 	if(B2[j] == 2):
-		T[i+1,j] = 200
-	else:
 		coeffsT[i,j,0] = 0
+	else:
+		T[nI-1,j] = 283
 
 
 for i in range(1,nI-1):
 	j = 1
-	coeffsT[i,j,3] = 0
+	#Dirichlet on south wall
+	T[i,0] = 273
 
 	j = nJ-2
 	coeffsT[i,j,2] = 0
@@ -223,7 +224,6 @@ for iter in range(nIterations):
     # Impose boundary conditions
     
     # Solve for T using Gauss-Seidel or TDMA (both results need to be presented)
-	
 	if (method == 'Gauss'):
 		for i in range(1, nI-1):
 			for j in range(1, nJ-1):
@@ -262,33 +262,29 @@ for iter in range(nIterations):
 				for i in reversed(range(1, nI-1)):
 					T[i,j] = P[i,j] * T[i+1,j] + Q[i,j]
 		else:
-			tfrlhsdajf=1
 			#Solve horizontally
-			#for i in range(1,nI-1):
-			#	for j in range(1,nJ-1):
-			#		a[i,j] = coeffsT[i,j,4] #a_p
-			#		b[i,j] = coeffsT[i,j,2] #a_n
-			#		c[i,j] = coeffsT[i,j,3] #a_s
-			#		d[i,j] = coeffsT[i,j,0] * T[i+1,j] + coeffsT[i,j,1] * T[i-1,j] 
-			#	#Construct P and Q terms
-			#	j = 1
-			#	P[i,j] = b[i,j] / a[i,j]
-			#	Q[i,j] = (d[i,j] + c[i,j] * T[i,j-1])/a[i,j] 
-			#	for i in range(2,nI-2):
-			#		P[i,j] = b[i,j] / (a[i,j] - c[i,j] * P[i,j-1])
-			#		Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1]) / (d[i,j] - c[i,j] * Q[i,j-1])
-			#	i=nI-2
-			#	P[i,j] = 0
-			#	Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1] + b[i,j] * T[i,j+1]) / (a[i,j] - c[i,j] * P[i,j-1])
-#
-			#	for j in range(1, nJ-1):
-			#		T[i,nJ - j - 1] = P[i,nJ - j - 1] * T[i,nJ - j] + Q[i,nJ - j - 1]
+			for i in range(1,nI-1):
+				for j in range(1,nJ-1):
+					a[i,j] = coeffsT[i,j,4] #a_p
+					b[i,j] = coeffsT[i,j,2] #a_n
+					c[i,j] = coeffsT[i,j,3] #a_s
+					d[i,j] = coeffsT[i,j,0] * T[i+1,j] + coeffsT[i,j,1] * T[i-1,j] 
+				#Construct P and Q terms
+				j = 1
+				P[i,j] = b[i,j] / a[i,j]
+				Q[i,j] = (d[i,j] + c[i,j] * T[i,j-1])/a[i,j] 
+				for j in range(2,nJ-2):
+					P[i,j] = b[i,j] / (a[i,j] - c[i,j] * P[i,j-1])
+					Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1]) / (a[i,j] - c[i,j] * P[i,j-1])
+				j=nJ-2
+				P[i,j] = 0
+				Q[i,j] = (d[i,j] + c[i,j] * Q[i,j-1] + b[i,j] * T[i,j+1]) / (a[i,j] - c[i,j] * P[i,j-1])
+
+				for j in reversed(range(1, nJ-1)):
+					T[i,j] = P[i,j] * T[i,j+1] + Q[i,j]
 
     # Copy temperatures to boundaries
-	for i in range(1, nI-1):
-		j = 1
-		T[i,j-1] = T[i,j]
-
+	for i in range(0, nI):
 		j = nJ-1
 		T[i,j] = T[i,j-1]
 
@@ -297,34 +293,106 @@ for iter in range(nIterations):
 		if(B4[j] != 1):
 			T[i-1,j] = T[i,j]
 
-    # Compute residuals (taking into account normalization)
-	#residuals.append() # fill with your residual value for the 
+		i = nI-1
+		if(B2[j] != 0):
+			T[i,j] = T[i-1,j]
+
+    # # Compute residuals (taking into account normalization)
+	F_res_xi = 0
+	F_res_xo = 0
+	for j in range(1, nJ-1):
+		i = 0
+		if(B4[j] != 0):
+			F_res_xi = F_res_xi + (abs(rho * U[i,j] * dy_CV[j]) * T[i,j]) + (abs(rho * V[i,j] * dx_CV[i]) * T[i,j]) 
+
+		i = nI-1
+		if(B2[j] != 0):
+			F_res_xo = F_res_xo + (abs(rho * U[i,j] * dy_CV[j]) * T[i,j]) + (abs(rho * V[i,j] * dx_CV[i]) * T[i,j]) 
+	
+	F_res_total = abs(F_res_xi - F_res_xo)
+
+	R = 0
+	r = 0
+	for i in range(1, nI-1):
+		for j in range(1, nJ-1):
+			R = R + abs(coeffsT[i,j,4] * T[i,j] - coeffsT[i,j,0] * T[i+1, j] \
+				- coeffsT[i,j,1] * T[i-1, j] - coeffsT[i,j,2] * T[i,j+1] \
+				- coeffsT[i,j,3] * T[i, j-1]) 
+
+	r = R / F_res_total	
+
+
+
+	residuals.append(r) # fill with your residual value for the 
                        # current iteration
     
-	#print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
+	print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
     
     # Check convergence
     
-	#if resTolerance>residuals[-1]:	
-	#	break
+	if resTolerance>residuals[-1]:	
+		break
 
+# Compute heat fluxes
+q = np.zeros((nI, nJ, 2))
+for i in range(1,nI-1):
+	for j in range(1,nJ-1):
+		q[i,j,0] = -k*(T[i+1,j]-T[i-1,j])/(dxe_N[i]+dxw_N[i])
+		q[i,j,1] = -k*(T[i,j+1]-T[i,j-1])/(dyn_N[j]+dys_N[j])
+
+#Boundary 2 non-outlet part
+i = nI-1
+for j in range(1, nJ-1):
+	q[i,j,0] = -k * (T[i,j] - T[i-1,j])/dxw_N[i-1]
+	q[i,j,1] = -k*(T[i,j+1]-T[i,j-1])/(dyn_N[j]+dys_N[j])
+
+#Heat flux out of dirichlet
+F_dirich = 0
+for j in range(1, nJ-1):
+	if(B2[j] == 0):
+		F_dirich = F_dirich + q[nI-1,j,0] * dy_CV[j]
+
+#Total heat flux
+F_total = F_res_xo * Cp + F_dirich - F_res_xi * Cp #W, Correct units
+
+F_ratio = (F_total)/(F_res_xo * Cp + F_dirich + F_res_xi * Cp)
 
 # Plotting (these are some examples, more plots might be needed)
 xv, yv = np.meshgrid(xCoords_N, yCoords_N)
 
-plt.figure()
-plt.plot()
+#plt.figure()
+#plt.plot()
+
+# plt.figure()
+# plt.quiver(xv, yv, U.T, V.T)
+# plt.title('Velocity vectors')
+# plt.xlabel('x [m]')
+# plt.ylabel('y [m]')
 
 plt.figure()
-plt.quiver(xv, yv, U.T, V.T)
-plt.title('Velocity vectors')
+plt.quiver(xv, yv, q[:,:,0].T, q[:,:,1].T)
+plt.title('Heat flux vectors')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 
+plt.figure()
+plt.plot(residuals)
+plt.yscale('log')
+plt.title('Residual convergence')
+plt.xlabel('iterations')
+plt.ylabel('residuals [-]')
+plt.title('Residual')
 
 plt.figure()
-plt.pcolormesh(xv, yv, T.T) #contourf for smooth plot
+plt.plot(xCoords_N, T[:,0])
+plt.xlabel('x [m]')
+plt.ylabel('T [K]')
+plt.title('Temperature on boundary 1')
+
+plt.figure()
+plt.contourf(xv, yv, T.T) #contourf for smooth plot
 plt.colorbar()
+#plt.quiver(xv, yv, U.T, V.T)
 plt.title('Temperature')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
