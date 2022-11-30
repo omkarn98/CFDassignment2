@@ -335,21 +335,6 @@ for iter in range(nIterations):
 	if resTolerance>residuals[-1]:	
 		break
 
-# Heat Flux calculation
-
-#heat flux at inlet and outlet 
-for j in range(1, nI-1):
-	i = 0
-	F_res_xi = ((rho * V[i,j] * dy_CV[j]) * T[i,j] + (rho * U[i,j] * dy_CV[j]) * T[i,j]) * Cp
-
-	i = nI-1
-	F_res_xo = ((rho * V[i,j] * dy_CV[j]) * T[i,j]) + ((rho * U[i,j] * dy_CV[j]) * T[i,j]) * Cp 
-
-
-F_global = F_res_xi + F_res_xo
-
-print(F_global)
-
 # Compute heat fluxes
 q = np.zeros((nI, nJ, 2))
 for i in range(1,nI-1):
