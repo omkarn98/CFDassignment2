@@ -81,7 +81,7 @@ def  ReadDataAndGeometry(caseID, grid_type):
 
 grid_type   = 'fine' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
-k           =     1/100
+k           =     1
 rho         =     1   # density
 nIterations =     80000  # number of iterations
 Cp          = 500
@@ -355,8 +355,10 @@ for j in range(1, nJ-1):
 
 #Total heat flux
 F_total = F_res_xo * Cp + F_dirich - F_res_xi * Cp #W, Correct units
+print('The total heat flux of the system is ', str(round(F_total[0], 2)), ' Watts.')
 
 F_ratio = (F_total)/(F_res_xo * Cp + F_dirich + F_res_xi * Cp)
+print('The ratio between the heat flux and the sum of the magnitude of the heat fluxes is ', str(round(F_ratio[0] * 100, 2)), ' percent.')
 
 # Plotting (these are some examples, more plots might be needed)
 xv, yv = np.meshgrid(xCoords_N, yCoords_N)
