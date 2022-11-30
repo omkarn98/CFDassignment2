@@ -83,7 +83,7 @@ grid_type   = 'coarse' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
 k           =     1   
 rho         =     1   # density
-nIterations =     2000  # number of iterations
+nIterations =     4000  # number of iterations
 Cp          = 500
 method = 'TDMA'
 plotVelocityVectors = False
@@ -304,9 +304,12 @@ for iter in range(nIterations):
 	F_res_xo = 0
 	for j in range(1, nJ-1):
 		i = 0
-		F_res_xi = F_res_xi + (abs(rho * V[i,j] * dy_CV[j]) * T[i,j]) + (abs(rho * U[i,j] * dy_CV[j]) * T[i,j]) 
+		if(B4[j] != 0):
+			F_res_xi = F_res_xi + (abs(rho * U[i,j] * dy_CV[j]) * T[i,j]) + (abs(rho * V[i,j] * dx_CV[i]) * T[i,j]) 
+
 		i = nI-1
-		F_res_xo = F_res_xo + (abs(rho * V[i,j] * dy_CV[j]) * T[i,j]) + (abs(rho * U[i,j] * dy_CV[j]) * T[i,j]) 
+		if(B2[j] != 0):
+			F_res_xo = F_res_xo + (abs(rho * U[i,j] * dy_CV[j]) * T[i,j]) + (abs(rho * V[i,j] * dx_CV[i]) * T[i,j]) 
 	
 	F_res_total = abs(F_res_xi - F_res_xo)
 
@@ -345,6 +348,15 @@ i = nI-1
 for j in range(1, nJ-1):
 	q[i,j,0] = -k * (T[i,j] - T[i-1,j])/dxw_N[i-1]
 	q[i,j,1] = -k*(T[i,j+1]-T[i,j-1])/(dyn_N[j]+dys_N[j])
+
+#Heat flux out of dirichlet
+F_dirich = 0
+for j in range(1, nJ-1):
+	if(B2[j] == 0):
+		F_dirich = F_dirich + q[nI-1,j,0] * dy_CV[j]
+
+#Total heat flux
+F_total = F_res_xo * Cp + F_dirich * Cp - F_res_xi #Correct units
 
 # Plotting (these are some examples, more plots might be needed)
 xv, yv = np.meshgrid(xCoords_N, yCoords_N)
