@@ -81,9 +81,9 @@ def  ReadDataAndGeometry(caseID, grid_type):
 
 grid_type   = 'fine' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
-k           =     1   
+k           =     1/100
 rho         =     1   # density
-nIterations =     4000  # number of iterations
+nIterations =     80000  # number of iterations
 Cp          = 500
 method = 'TDMA'
 plotVelocityVectors = False
@@ -222,7 +222,6 @@ for iter in range(nIterations):
     # Impose boundary conditions
     
     # Solve for T using Gauss-Seidel or TDMA (both results need to be presented)
-	
 	if (method == 'Gauss'):
 		for i in range(1, nI-1):
 			for j in range(1, nJ-1):
@@ -377,23 +376,24 @@ plt.title('Heat flux vectors')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 
-# plt.figure()
-# plt.plot(residuals)
-# plt.yscale('log')
-# plt.title('Residual convergence')
-# plt.xlabel('iterations')
-# plt.ylabel('residuals [-]')
-# plt.title('Residual')
+plt.figure()
+plt.plot(residuals)
+plt.yscale('log')
+plt.title('Residual convergence')
+plt.xlabel('iterations')
+plt.ylabel('residuals [-]')
+plt.title('Residual')
+
 plt.figure()
 plt.plot(xCoords_N, T[:,0])
 plt.xlabel('x [m]')
 plt.ylabel('T [K]')
-plt.title('Temperature')
+plt.title('Temperature on boundary 1')
 
 plt.figure()
 plt.contourf(xv, yv, T.T) #contourf for smooth plot
 plt.colorbar()
-plt.quiver(xv, yv, U.T, V.T)
+#plt.quiver(xv, yv, U.T, V.T)
 plt.title('Temperature')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
