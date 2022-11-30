@@ -81,7 +81,7 @@ def  ReadDataAndGeometry(caseID, grid_type):
 
 grid_type   = 'fine' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
-k           =     1/100
+k           =     1
 rho         =     1   # density
 nIterations =     80000  # number of iterations
 Cp          = 500
@@ -207,7 +207,7 @@ for j in range(1, nJ-1):
 		T[nI-1,j] = 283
 
 
-for i in range(1,nI-1):
+for i in range(0,nI):
 	j = 1
 	#Dirichlet on south wall
 	T[i,0] = 273
@@ -319,9 +319,7 @@ for iter in range(nIterations):
 				- coeffsT[i,j,1] * T[i-1, j] - coeffsT[i,j,2] * T[i,j+1] \
 				- coeffsT[i,j,3] * T[i, j-1]) 
 
-	r = R / F_res_total	
-
-
+	r = R / F_res_total
 
 	residuals.append(r) # fill with your residual value for the 
                        # current iteration
@@ -329,7 +327,6 @@ for iter in range(nIterations):
 	print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
     
     # Check convergence
-    
 	if resTolerance>residuals[-1]:	
 		break
 
