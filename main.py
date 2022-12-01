@@ -79,7 +79,7 @@ def  ReadDataAndGeometry(caseID, grid_type):
 
 # Inputs
 
-grid_type   = 'fine' # either 'coarse' or 'fine'
+grid_type   = 'coarse' # either 'coarse' or 'fine'
 caseID      =     3    # your case number to solve
 k           =     1
 rho         =     1   # density
@@ -87,7 +87,7 @@ nIterations =     80000  # number of iterations
 Cp          = 500
 method = 'TDMA'
 plotVelocityVectors = False
-resTolerance = 0.0001
+resTolerance = 0.001
 
 # Read data for velocity fields and geometrical quantities
 
@@ -177,10 +177,10 @@ for i in range(1,nI-1):
 		Fx_s = 0.5 * dy_CV[j] / dys_N[j]
 		
 		
-		F[i,j,0] =  Fx_e * (rho * U[i+1,j]) + (1-Fx_e) * rho * U[i,j]  # east convective
-		F[i,j,1] =  Fx_w * (rho * U[i-1,j]) + (1-Fx_w) * rho * U[i,j]  # weast convective
-		F[i,j,2] =  Fx_n * (rho * V[i,j+1]) + (1-Fx_n) * rho * V[i,j]  # north convective
-		F[i,j,3] =  Fx_s * (rho * V[i,j-1]) + (1-Fx_s) * rho * V[i,j]  # south convective
+		F[i,j,0] =  Fx_e * (rho * U[i+1,j]) * dy_CV[i] + (1-Fx_e) * rho * U[i,j] * dy_CV[i]  # east convective
+		F[i,j,1] =  Fx_w * (rho * U[i-1,j]) * dy_CV[i] + (1-Fx_w) * rho * U[i,j] * dy_CV[i]  # weast convective
+		F[i,j,2] =  Fx_n * (rho * V[i,j+1]) * dx_CV[j] + (1-Fx_n) * rho * V[i,j] * dx_CV[j]  # north convective
+		F[i,j,3] =  Fx_s * (rho * V[i,j-1]) * dx_CV[j] + (1-Fx_s) * rho * V[i,j] * dx_CV[j]  # south convective
 
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
 for i in range(1,nI-1):
@@ -209,6 +209,7 @@ for j in range(1, nJ-1):
 for i in range(1,nI-1):
 	j = 1
 	coeffsT[i,j,3] = 0
+	# T[i,j] = 273
 
 	j = nJ-2
 	coeffsT[i,j,2] = 0
