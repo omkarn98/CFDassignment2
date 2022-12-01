@@ -87,7 +87,7 @@ nIterations =     4000  # number of iterations
 Cp          = 500
 method = 'TDMA'
 plotVelocityVectors = False
-resTolerance = 0.01
+resTolerance = 0.001
 
 # Read data for velocity fields and geometrical quantities
 
@@ -177,10 +177,10 @@ for i in range(1,nI-1):
 		Fx_s = 0.5 * dy_CV[j] / dys_N[j]
 		
 		
-		F[i,j,0] =  Fx_e * (rho * U[i+1,j]) + (1-Fx_e) * rho * U[i,j]  # east convective
-		F[i,j,1] =  Fx_w * (rho * U[i-1,j]) + (1-Fx_w) * rho * U[i,j]  # weast convective
-		F[i,j,2] =  Fx_n * (rho * V[i,j+1]) + (1-Fx_n) * rho * V[i,j]  # north convective
-		F[i,j,3] =  Fx_s * (rho * V[i,j-1]) + (1-Fx_s) * rho * V[i,j]  # south convective
+		F[i,j,0] =  (Fx_e * (rho * U[i+1,j]) + (1-Fx_e) * rho * U[i,j]) * dy_CV[i]  # east convective
+		F[i,j,1] =  (Fx_w * (rho * U[i-1,j]) + (1-Fx_w) * rho * U[i,j]) * dy_CV[i]  # weast convective
+		F[i,j,2] =  (Fx_n * (rho * V[i,j+1]) + (1-Fx_n) * rho * V[i,j]) * dx_CV[j]  # north convective
+		F[i,j,3] =  (Fx_s * (rho * V[i,j-1]) + (1-Fx_s) * rho * V[i,j]) * dx_CV[j]  # south convective
 
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
 for i in range(1,nI-1):
